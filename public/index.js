@@ -1,6 +1,9 @@
 // Import MQTT service
 import { MQTTService } from "./mqttService.js";
 
+// MQTT Connection Details
+const clientId = 'emqx_nodejs_' + Math.random().toString(16).substring(2, 8);
+
 // Target specific HTML items
 const sideMenu = document.querySelector("aside");
 const menuBtn = document.querySelector("#menu-btn");
@@ -52,26 +55,18 @@ themeToggler.addEventListener("click", () => {
 */
 var temperatureHistoryDiv = document.getElementById("temperature-history");
 var humidityHistoryDiv = document.getElementById("humidity-history");
-var pressureHistoryDiv = document.getElementById("pressure-history");
-var altitudeHistoryDiv = document.getElementById("altitude-history");
 
 var temperatureGaugeDiv = document.getElementById("temperature-gauge");
 var humidityGaugeDiv = document.getElementById("humidity-gauge");
-var pressureGaugeDiv = document.getElementById("pressure-gauge");
-var altitudeGaugeDiv = document.getElementById("altitude-gauge");
 
 const historyCharts = [
   temperatureHistoryDiv,
   humidityHistoryDiv,
-  pressureHistoryDiv,
-  altitudeHistoryDiv,
 ];
 
 const gaugeCharts = [
   temperatureGaugeDiv,
   humidityGaugeDiv,
-  pressureGaugeDiv,
-  altitudeGaugeDiv,
 ];
 
 // History Data
@@ -86,20 +81,6 @@ var humidityTrace = {
   x: [],
   y: [],
   name: "Humidity",
-  mode: "lines+markers",
-  type: "line",
-};
-var pressureTrace = {
-  x: [],
-  y: [],
-  name: "Pressure",
-  mode: "lines+markers",
-  type: "line",
-};
-var altitudeTrace = {
-  x: [],
-  y: [],
-  name: "Altitude",
   mode: "lines+markers",
   type: "line",
 };
@@ -155,68 +136,14 @@ var humidityLayout = {
     linecolor: chartAxisColor,
   },
 };
-var pressureLayout = {
-  autosize: true,
-  title: {
-    text: "Pressure",
-  },
-  font: {
-    size: 12,
-    color: chartFontColor,
-    family: "poppins, san-serif",
-  },
-  colorway: ["#05AD86"],
-  margin: { t: 40, b: 40, l: 30, r: 30, pad: 0 },
-  plot_bgcolor: chartBGColor,
-  paper_bgcolor: chartBGColor,
-  xaxis: {
-    color: chartAxisColor,
-    linecolor: chartAxisColor,
-    gridwidth: "2",
-  },
-  yaxis: {
-    color: chartAxisColor,
-    linecolor: chartAxisColor,
-  },
-};
-var altitudeLayout = {
-  autosize: true,
-  title: {
-    text: "Altitude",
-  },
-  font: {
-    size: 12,
-    color: chartFontColor,
-    family: "poppins, san-serif",
-  },
-  colorway: ["#05AD86"],
-  margin: { t: 40, b: 40, l: 30, r: 30, pad: 0 },
-  plot_bgcolor: chartBGColor,
-  paper_bgcolor: chartBGColor,
-  xaxis: {
-    color: chartAxisColor,
-    linecolor: chartAxisColor,
-    gridwidth: "2",
-  },
-  yaxis: {
-    color: chartAxisColor,
-    linecolor: chartAxisColor,
-  },
-};
+
 
 var config = { responsive: true, displayModeBar: false };
 
 // Event listener when page is loaded
 window.addEventListener("load", (event) => {
-  Plotly.newPlot(
-    temperatureHistoryDiv,
-    [temperatureTrace],
-    temperatureLayout,
-    config
-  );
+  Plotly.newPlot(temperatureHistoryDiv,[temperatureTrace],temperatureLayout,config);
   Plotly.newPlot(humidityHistoryDiv, [humidityTrace], humidityLayout, config);
-  Plotly.newPlot(pressureHistoryDiv, [pressureTrace], pressureLayout, config);
-  Plotly.newPlot(altitudeHistoryDiv, [altitudeTrace], altitudeLayout, config);
 
   // Get MQTT Connection
   fetchMQTTConnection();
@@ -272,58 +199,11 @@ var humidityData = [
   },
 ];
 
-var pressureData = [
-  {
-    domain: { x: [0, 1], y: [0, 1] },
-    value: 0,
-    title: { text: "Pressure" },
-    type: "indicator",
-    mode: "gauge+number+delta",
-    delta: { reference: 750 },
-    gauge: {
-      axis: { range: [null, 1100] },
-      steps: [
-        { range: [0, 300], color: "lightgray" },
-        { range: [300, 700], color: "gray" },
-      ],
-      threshold: {
-        line: { color: "red", width: 4 },
-        thickness: 0.75,
-        value: 30,
-      },
-    },
-  },
-];
-
-var altitudeData = [
-  {
-    domain: { x: [0, 1], y: [0, 1] },
-    value: 0,
-    title: { text: "Altitude" },
-    type: "indicator",
-    mode: "gauge+number+delta",
-    delta: { reference: 60 },
-    gauge: {
-      axis: { range: [null, 150] },
-      steps: [
-        { range: [0, 50], color: "lightgray" },
-        { range: [50, 100], color: "gray" },
-      ],
-      threshold: {
-        line: { color: "red", width: 4 },
-        thickness: 0.75,
-        value: 30,
-      },
-    },
-  },
-];
 
 var layout = { width: 300, height: 250, margin: { t: 0, b: 0, l: 0, r: 0 } };
 
 Plotly.newPlot(temperatureGaugeDiv, temperatureData, layout);
 Plotly.newPlot(humidityGaugeDiv, humidityData, layout);
-Plotly.newPlot(pressureGaugeDiv, pressureData, layout);
-Plotly.newPlot(altitudeGaugeDiv, altitudeData, layout);
 
 // Will hold the arrays we receive from our BME280 sensor
 // Temperature
@@ -332,12 +212,6 @@ let newTempYArray = [];
 // Humidity
 let newHumidityXArray = [];
 let newHumidityYArray = [];
-// Pressure
-let newPressureXArray = [];
-let newPressureYArray = [];
-// Altitude
-let newAltitudeXArray = [];
-let newAltitudeYArray = [];
 
 // The maximum number of data points displayed on our scatter/line graph
 let MAX_GRAPH_POINTS = 12;
@@ -350,12 +224,10 @@ function updateSensorReadings(jsonResponse) {
 
   let temperature = Number(jsonResponse.temperature).toFixed(2);
   let humidity = Number(jsonResponse.humidity).toFixed(2);
-  let pressure = Number(jsonResponse.pressure).toFixed(2);
-  let altitude = Number(jsonResponse.altitude).toFixed(2);
 
-  updateBoxes(temperature, humidity, pressure, altitude);
+  updateBoxes(temperature, humidity);
 
-  updateGauge(temperature, humidity, pressure, altitude);
+  updateGauge(temperature, humidity);
 
   // Update Temperature Line Chart
   updateCharts(
@@ -371,52 +243,26 @@ function updateSensorReadings(jsonResponse) {
     newHumidityYArray,
     humidity
   );
-  // Update Pressure Line Chart
-  updateCharts(
-    pressureHistoryDiv,
-    newPressureXArray,
-    newPressureYArray,
-    pressure
-  );
-
-  // Update Altitude Line Chart
-  updateCharts(
-    altitudeHistoryDiv,
-    newAltitudeXArray,
-    newAltitudeYArray,
-    altitude
-  );
 }
 
-function updateBoxes(temperature, humidity, pressure, altitude) {
+function updateBoxes(temperature, humidity) {
   let temperatureDiv = document.getElementById("temperature");
   let humidityDiv = document.getElementById("humidity");
-  let pressureDiv = document.getElementById("pressure");
-  let altitudeDiv = document.getElementById("altitude");
 
   temperatureDiv.innerHTML = temperature + " C";
   humidityDiv.innerHTML = humidity + " %";
-  pressureDiv.innerHTML = pressure + " hPa";
-  altitudeDiv.innerHTML = altitude + " m";
 }
 
-function updateGauge(temperature, humidity, pressure, altitude) {
+function updateGauge(temperature, humidity) {
   var temperature_update = {
     value: temperature,
   };
   var humidity_update = {
     value: humidity,
   };
-  var pressure_update = {
-    value: pressure,
-  };
-  var altitude_update = {
-    value: altitude,
-  };
+
   Plotly.update(temperatureGaugeDiv, temperature_update);
   Plotly.update(humidityGaugeDiv, humidity_update);
-  Plotly.update(pressureGaugeDiv, pressure_update);
-  Plotly.update(altitudeGaugeDiv, altitude_update);
 }
 
 function updateCharts(lineChartDiv, xArray, yArray, sensorRead) {
@@ -537,17 +383,17 @@ function fetchMQTTConnection() {
       return response.json();
     })
     .then(function (data) {
-      initializeMQTTConnection(data.mqttServer, data.mqttTopic);
+      initializeMQTTConnection(data.mqttServer, data.mqttTopic, data.mqttUsername, data.mqttPassword);
     })
     .catch((error) => console.error("Error getting MQTT Connection :", error));
 }
-function initializeMQTTConnection(mqttServer, mqttTopic) {
+function initializeMQTTConnection(mqttServer, mqttTopic,mqttUsername,mqttPassword) {
   console.log(
     `Initializing connection to :: ${mqttServer}, topic :: ${mqttTopic}`
   );
   var fnCallbacks = { onConnect, onMessage, onError, onClose };
 
-  var mqttService = new MQTTService(mqttServer, fnCallbacks);
+  var mqttService = new MQTTService(mqttServer,clientId,mqttUsername,mqttPassword,fnCallbacks);
   mqttService.connect();
 
   mqttService.subscribe(mqttTopic);

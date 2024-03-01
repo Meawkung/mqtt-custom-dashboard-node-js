@@ -1,12 +1,19 @@
 export class MQTTService {
-  constructor(host, messageCallbacks) {
+  constructor(host,clientid,username,password,messageCallbacks) {
     this.mqttClient = null;
     this.host = host;
+    this.clientid = clientid;
+    this.username = username;
+    this.password = password;
     this.messageCallbacks = messageCallbacks;
   }
 
   connect() {
-    this.mqttClient = mqtt.connect(this.host);
+    this.mqttClient = mqtt.connect(this.host,{
+      clientId: this.clientid,
+      username: this.username,
+      password: this.password
+    });
 
     // MQTT Callback for 'error' event
     this.mqttClient.on("error", (err) => {

@@ -19,6 +19,8 @@ app.get("/mqttConnDetails", (req, res) => {
     JSON.stringify({
       mqttServer: process.env.MQTT_BROKER,
       mqttTopic: process.env.MQTT_TOPIC,
+      mqttUsername: process.env.MQTT_USERNAME,
+      mqttPassword: process.env.MQTT_PASSWORD,
     })
   );
 });

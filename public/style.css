@@ -218,7 +218,7 @@ main {
 
 main .insights {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: auto;
   gap: 1.6rem;
 }
 main .insights > div {
@@ -250,12 +250,6 @@ main .insights > div.humidity span {
   background: var(--color-insight-2);
 }
 
-main .insights > div.pressure span {
-  background: var(--color-insight-3);
-}
-main .insights > div.altitude span {
-  background: var(--color-insight-4);
-}
 
 main .insights > div .middle {
   display: flex;
@@ -416,7 +410,7 @@ main .histories h2 {
     grid-template-columns: 12rem auto 23rem;
   }
   main .insights {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     gap: 1.6rem;
   }
   main .histories .history-charts {
