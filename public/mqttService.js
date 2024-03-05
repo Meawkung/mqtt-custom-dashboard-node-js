@@ -9,11 +9,13 @@ export class MQTTService {
   }
 
   connect() {
-    this.mqttClient = mqtt.connect(this.host,{
+    this.mqttClient = mqtt.connect(this.host,
+    {
       clientId: this.clientid,
       username: this.username,
       password: this.password
-    });
+    }
+    );
 
     // MQTT Callback for 'error' event
     this.mqttClient.on("error", (err) => {

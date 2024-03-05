@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // load dotenv to read environment variables
 require("dotenv").config();
@@ -27,6 +27,9 @@ app.get("/mqttConnDetails", (req, res) => {
 
 app.get("/", dashboardRouter);
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
+
+server.keepAliveTimeout = 120 * 1000;
+server.headersTimeout = 120 * 1000;
